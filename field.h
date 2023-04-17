@@ -5,9 +5,11 @@
 #ifndef UNIVERSAL_GAMING_FIELD_FIELD_H
 #define UNIVERSAL_GAMING_FIELD_FIELD_H
 
+#include <array>
 #include <vector>
 #include <set>
 #include <string>
+#include <unordered_set>
 
 class Field {
 public:
@@ -17,23 +19,30 @@ public:
 
     int changeSize(int left, int right, int below, int avard);
 
-    int addObject(std::size_t x, std::size_t y, GameObject obj);
+    int addObject(std::size_t x, std::size_t y, GameObject gObj);
+    int addObjectRandPos(GameObject gObj);
     void deteleObject(std::size_t x, std::size_t y);
+    std::vector<GameObject::Action> getPossibleActions(GameObject gObj);
 
-
+    const GameObject* getObjectAtPos(std::size_t x, std::size_t y);
+    const GameObject* getObjectByTag(std::string tag);
 
     class Cell {
     public:
+        static std::unordered_set<std::string> possible_tags;
+
         bool isAvalForObj();
 
     private:
+        std::unordered_set<std::string> tags;
         bool is_aval_for_obj;
-        static std::set<std::string> possible_tags;
     };
 
 private:
-
-
+    std::vector<std::vector<Cell>> cells_matrix;
+    std::vector<GameObject> objects;
+    std::vector<GameObject> activeObjects;
+    std::vector<GameObject> inactiveObjects;
 };
 
 #endif //UNIVERSAL_GAMING_FIELD_FIELD_H
