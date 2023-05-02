@@ -5,11 +5,13 @@
 #ifndef UNIVERSAL_GAMING_FIELD_FIELD_H
 #define UNIVERSAL_GAMING_FIELD_FIELD_H
 
+#include <game_object.h>
 #include <array>
 #include <vector>
 #include <set>
 #include <string>
 #include <unordered_set>
+#include <functional>
 
 //struct GamePreset {
 //public:
@@ -18,30 +20,22 @@
 //};
 
 class Field {
-
 public:
-
     enum RotationDirection {
         CLOCKWISE,
         COUNTERCLOCKWISE
     };
 
 private:
-
     class Cell {
-
     public:
-
         static std::unordered_set<std::string> possibleTags;
 
     private:
-
         bool is_aval_for_obj;
-
     };
 
 public:
-
     Field() = delete;
     Field(std::size_t width, std::size_t height);
     Field(std::vector<std::vector<bool>> matrix);
@@ -60,16 +54,14 @@ public:
 
     std::vector<const GameObject*> getObjectsByTag(std::string tag) const;
 
-    const std::vector<GameObject::Action> getObjectActions(GameObject gObj) const;
+    const std::unordered_set<const std::function<void(const GameObject&)>&> getObjectActions(const GameObject& gObj) const;
     const std::vector<Action> getCellActions(std::size_t x, std::size_t y) const; // закончили здесь.
 
 private:
-
     std::vector<std::vector<Cell>> cells_matrix;
     std::vector<GameObject> objects;
     std::vector<GameObject> activeObjects;
     std::vector<GameObject> inactiveObjects;
-
 };
 
 #endif //UNIVERSAL_GAMING_FIELD_FIELD_H
