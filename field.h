@@ -5,13 +5,19 @@
 #ifndef UNIVERSAL_GAMING_FIELD_FIELD_H
 #define UNIVERSAL_GAMING_FIELD_FIELD_H
 
-#include <game_object.h>
 #include <array>
 #include <vector>
 #include <set>
 #include <string>
 #include <unordered_set>
 #include <functional>
+
+#include <game_objects.h>
+class GameObject;
+class MovingObject;
+class RotatableObject;
+class CreatorObject;
+
 
 //struct GamePreset {
 //public:
@@ -21,47 +27,56 @@
 
 class Field {
 public:
-    enum RotationDirection {
-        CLOCKWISE,
-        COUNTERCLOCKWISE
+
+    static struct Position {
+        std::size_t x;
+        std::size_t y;
     };
 
-private:
     class Cell {
     public:
         static std::unordered_set<std::string> possibleTags;
 
-    private:
+        const std::unordered_set<std::string> getTags();
+        void addTag(std::string);
+
+    protected:
+        Cell() = default;
+        ~Cell() = default;
+
+        std::size_t x, y;
         bool is_aval_for_obj;
+        std::unordered_set<GameObject*> objects;
+
+        std::unordered_set<std::string> tags;
     };
 
-public:
     Field() = delete;
     Field(std::size_t width, std::size_t height);
     Field(std::vector<std::vector<bool>> matrix);
 
-    int changeSize(int left, int right, int below, int above);
-    void rotate(RotationDirection rdir, int number);
+    int changeSize(long long left, long long right, long long below, long long above);
+    void rotate(int clockwiseRotatesNubmer);
 
-    int addObject(std::size_t x, std::size_t y, GameObject gObj);
-    int addObjectRandPos(GameObject gObj);
-    void deteleObject(std::size_t x, std::size_t y);
+    int setObject(const GameObject* gObj, Position pos);
+    int setObjectRandPos(GameObject gObj);
+    void deleteObject(const GameObject* gObj);
+    void deteleObjectAtPos(Position pos);
 
-    const std::vector<Cell> getAvailableCells() const;
+    const std::unordered_set<const Cell&> getAvailableCells() const;
 
-    std::vector<const GameObject*> getObjectsAtPos(std::size_t x, std::size_t y) const;
-    std::pair<size_t, size_t> getPosOfObject(const GameObject& gObj) const;
+    std::unordered_set<const GameObject*> getObjectsAtPos(std::size_t x, std::size_t y) const;
+    Position getPosOfObject(const GameObject& gObj) const;
 
-    std::vector<const GameObject*> getObjectsByTag(std::string tag) const;
+    std::unordered_set<const GameObject*> getObjectsByTag(std::string tag) const;
 
-    const std::unordered_set<const std::function<void(const GameObject&)>&> getObjectActions(const GameObject& gObj) const;
-    const std::vector<Action> getCellActions(std::size_t x, std::size_t y) const; // закончили здесь.
+    const std::unordered_set<const GameObject*> getObjectToInteract(const GameObject& gObj) const;
+    const std::unordered_set<const Cell&> getCellActions(std::size_t x, std::size_t y) const; // закончили здесь.
 
 private:
     std::vector<std::vector<Cell>> cells_matrix;
-    std::vector<GameObject> objects;
-    std::vector<GameObject> activeObjects;
-    std::vector<GameObject> inactiveObjects;
+    std::unordered_set<GameObject*> activeObjects;
+    std::unordered_set<GameObject*> inactiveObjects;
 };
 
 #endif //UNIVERSAL_GAMING_FIELD_FIELD_H
