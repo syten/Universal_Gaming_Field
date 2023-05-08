@@ -7,4 +7,4 @@ include_directories(.)
 
 add_executable(Universal_Gaming_Field
         field.cpp
-        field.h game_objects.cpp game_objects.h)
+        field.h game_objects.cpp game_objects.h main_test.cpp)

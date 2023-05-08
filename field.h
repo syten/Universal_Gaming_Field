@@ -15,37 +15,30 @@
 #include <game_objects.h>
 class GameObject;
 class MovingObject;
-class RotatableObject;
+class RotatingObject;
 class CreatorObject;
 
-
-//struct GamePreset {
-//public:
-//    Field field;
-//    std::string presetName;
-//};
 
 class Field {
 public:
 
-    static struct Position {
+    struct Position {
         std::size_t x;
         std::size_t y;
     };
 
-    class Cell {
+    struct Cell {
     public:
         static std::unordered_set<std::string> possibleTags;
 
         const std::unordered_set<std::string> getTags();
         void addTag(std::string);
 
-    protected:
-        Cell() = default;
-        ~Cell() = default;
+    private:
+        Cell(const Position& _position, const bool _isAvalForObj, const std::unordered_set<std::string>& _tags);
 
-        std::size_t x, y;
-        bool is_aval_for_obj;
+        Position position;
+        bool isAvalForObj;
         std::unordered_set<GameObject*> objects;
 
         std::unordered_set<std::string> tags;
@@ -58,10 +51,16 @@ public:
     int changeSize(long long left, long long right, long long below, long long above);
     void rotate(int clockwiseRotatesNubmer);
 
-    int setObject(const GameObject* gObj, Position pos);
-    int setObjectRandPos(GameObject gObj);
-    void deleteObject(const GameObject* gObj);
-    void deteleObjectAtPos(Position pos);
+    bool setObjectAtPos(GameObject* gObj, Position pos);
+    bool setObjectAtPos(GameObject* gObj, std::size_t, std::size_t);
+    bool setObjectRandPos(GameObject gObj);
+    bool deleteObject(GameObject* gObj);
+    bool deteleObjectAtPos(Position pos);
+    bool changeObjectOrientation(GameObject* gObj, const RotatingObject::Orientation& newOrientation);
+    bool rotateObjectClockwise(GameObject* gObj, int rotates);
+    bool rotateObjectCounterclockwise(GameObject* gObj, int rotates);
+    bool changeObjectForm(GameObject* gObj, const _offsets_set& newCellsFromCenter);
+    bool nextObjectForm(GameObject* gObj);
 
     const std::unordered_set<const Cell&> getAvailableCells() const;
 
@@ -71,12 +70,19 @@ public:
     std::unordered_set<const GameObject*> getObjectsByTag(std::string tag) const;
 
     const std::unordered_set<const GameObject*> getObjectToInteract(const GameObject& gObj) const;
-    const std::unordered_set<const Cell&> getCellActions(std::size_t x, std::size_t y) const; // закончили здесь.
+    const std::unordered_set<const Cell&> getCellActions(std::size_t x, std::size_t y) const;
 
 private:
     std::vector<std::vector<Cell>> cells_matrix;
     std::unordered_set<GameObject*> activeObjects;
     std::unordered_set<GameObject*> inactiveObjects;
 };
+
+
+//struct GamePreset {
+//public:
+//    Field field;
+//    std::string presetName;
+//};
 
 #endif //UNIVERSAL_GAMING_FIELD_FIELD_H
