@@ -6,13 +6,12 @@
 #define UNIVERSAL_GAMING_FIELD_GAME_OBJECTS_H
 
 #include <unordered_set>
+#include <unordered_map>
 #include <string>
 #include <set>
 #include <exception>
-
-#include "field.h"
-class Field;
-
+#include <cmath>
+#include <vector>
 
 class wrong_orientation_exception: public std::exception {
     const char* what() const throw() {
@@ -29,10 +28,16 @@ struct pair_hash {
 typedef std::pair<long long, long long> _offset;
 typedef std::unordered_set<_offset, pair_hash> _offsets_set;
 
+class Field;
+class MovingObject;
+class RotatingObject;
+class FormChangingObject;
+class CreatorObject;
 
 class GameObject {
     friend class FormChangingObject;
     friend class RotatingObject;
+    friend class Field;
 
 public:
     GameObject() = default;
@@ -40,10 +45,11 @@ public:
     GameObject(GameObject&& otherGObj) = default;
     GameObject& operator=(const GameObject& otherGObj) = default;
     GameObject& operator=(GameObject&& otherGObj) = default;
-    ~GameObject() = default;
-    GameObject(Field& field, const Field::Position& gObjPos);
+    virtual ~GameObject() = default;
 
-    void attachToField(Field& field, const Field::Position& gObjPos);
+    double getHealth() const;
+    void changeHealth(double shift);
+
     Field* getAttachedField();
     bool isFieldAttached();
 
@@ -53,20 +59,25 @@ public:
     bool hasTag(std::string tag) const;
 
     std::size_t getSize() const;
+    const _offsets_set& getCurrentForm();
 
     //Interaction
     virtual _offsets_set getPositionsOfInteraction() const;
     void changeCellsOfInteraction(const _offsets_set& cells);
     void changeCellsOfInteraction(const std::vector<std::pair<long long, long long>>& cells);
-    void changeCellsOfinteraction(const std::set<std::pair<long long, long long>>& cells);
+    void changeCellsOfInteraction(const std::set<std::pair<long long, long long>>& cells);
 
-    virtual bool canIntersectWith(const GameObject* gObj) const;
-    virtual bool canInteractWith(const GameObject* gObj) const;
-    struct Interactor {
-        void operator() () {};
-    };
+    bool canIntersectWith(GameObject* gObj);
+    bool canInteractWith(GameObject* gObj);
+
+    virtual bool operator() (GameObject* gObj, bool needToInteract);
+    virtual bool operator() (MovingObject* gObj, bool needToInteract);
+    virtual bool operator() (RotatingObject* gObj, bool needToInteract);
+    virtual bool operator() (FormChangingObject* gObj, bool needToInteract);
+    virtual bool operator() (CreatorObject* gObj, bool needToInteract);
 
 protected:
+
     Field* attachedField{};
 
     double health{};
@@ -75,10 +86,12 @@ protected:
     std::unordered_set<std::string> tags;
 
     _offsets_set cellsOfInteraction;
-    Interactor interactor;
 
 private:
     _offsets_set currentForm;
+
+    void attachToField(Field* field);
+    void detachFromField();
 };
 
 
@@ -89,13 +102,14 @@ public:
     MovingObject(MovingObject&& otherGObj) = default;
     MovingObject& operator=(const MovingObject& otherGObj) = default;
     MovingObject& operator=(MovingObject&& otherGObj) = default;
-    ~MovingObject() = default;
-    MovingObject(Field& field, const Field::Position& gObjPos);
+    virtual ~MovingObject() = default;
 
     virtual _offsets_set getMovesFromCenter() const;
+    int getMovesPossible() const;
+    void changeMovesPossible(int shift);
 
 protected:
-    int movesPossible;
+    int movesPossible{};
 };
 
 
@@ -113,19 +127,20 @@ public:
     RotatingObject(RotatingObject&& otherGObj) = default;
     RotatingObject& operator=(const RotatingObject& otherGObj) = default;
     RotatingObject& operator=(RotatingObject&& otherGObj) = default;
-    ~RotatingObject() = default;
+    virtual ~RotatingObject() = default;
     explicit RotatingObject(const Orientation& _orientation);
-    RotatingObject(Field& field, const Field::Position& gObjPos, const Orientation& _orientation);
 
     bool rotateClockwiseOffField(int rotates);
     bool rotateCounterclockwiseOffField(int rotates);
 
     void changePivot(const _offset& newPivot);
 
+    Orientation getOrientation() const;
+
 protected:
     RotatingObject();
 
-    std::unordered_set<Orientation> orientationsAvailable;
+    std::unordered_map<Orientation, bool> orientationsAvailable;
     Orientation orientation;
     _offset pivot;
 };
@@ -138,8 +153,7 @@ public:
     FormChangingObject(FormChangingObject&& otherGObj) = default;
     FormChangingObject& operator=(const FormChangingObject& otherGObj) = default;
     FormChangingObject& operator=(FormChangingObject&& otherGObj) = default;
-    ~FormChangingObject() = default;
-    FormChangingObject(Field& field, const Field::Position& gObjPos);
+    virtual ~FormChangingObject() = default;
 
     bool changeFormOffField(const _offsets_set& newCellFromCenter);
     bool nextFormOffField();
@@ -156,13 +170,10 @@ public:
     CreatorObject(CreatorObject&& otherGObj) = default;
     CreatorObject& operator=(const CreatorObject& otherGObj) = default;
     CreatorObject& operator=(CreatorObject&& otherGObj) = default;
-    ~CreatorObject() = default;
-    CreatorObject(Field& field, const Field::Position& gObjPos);
+    virtual ~CreatorObject() = default;
 
     template<class ObjectT, typename... Args>
-    ObjectT* createObject(Args... args) {
-        return new ObjectT(args...);
-    };
+    ObjectT* createObject(Args... args);
 };
 
 #endif //UNIVERSAL_GAMING_FIELD_GAME_OBJECTS_H

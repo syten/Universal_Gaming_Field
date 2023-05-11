@@ -2,18 +2,6 @@
 
 // GameObject
 
-GameObject::GameObject(Field& field, const Field::Position& gObjPos): GameObject() {
-    attachedField = &field;
-    attachToField(field, gObjPos);
-}
-
-void GameObject::attachToField(Field& field, const Field::Position& gObjPos) {
-    if (isFieldAttached())
-        attachedField->deleteObject(this);
-    field.setObjectAtPos(this, gObjPos);
-    attachedField = &field;
-}
-
 Field* GameObject::getAttachedField() {
     return attachedField;
 }
@@ -42,6 +30,10 @@ std::size_t GameObject::getSize() const {
     return currentForm.size();
 }
 
+const _offsets_set& GameObject::getCurrentForm() {
+    return currentForm;
+}
+
 _offsets_set GameObject::getPositionsOfInteraction() const {
     return cellsOfInteraction;
 }
@@ -55,38 +47,76 @@ void GameObject::changeCellsOfInteraction(const std::vector<std::pair<long long 
     changeCellsOfInteraction(_cells);
 }
 
-void GameObject::changeCellsOfinteraction(const std::set<std::pair<long long int, long long int>> &cells) {
+void GameObject::changeCellsOfInteraction(const std::set<std::pair<long long int, long long int>> &cells) {
     _offsets_set _cells(cells.begin(), cells.end());
     changeCellsOfInteraction(_cells);
 }
 
-bool GameObject::canInteractWith(const GameObject *gObj) const {
+bool GameObject::canInteractWith(GameObject* gObj) {
     return gObj != nullptr;
 }
 
-bool GameObject::canIntersectWith(const GameObject *gObj) const {
+bool GameObject::canIntersectWith(GameObject* gObj) {
     return gObj != nullptr;
+}
+
+bool GameObject::operator() (GameObject* gObj, bool needToInteract) {
+    return false;
+}
+
+bool GameObject::operator() (MovingObject* gObj, bool needToInteract) {
+    return false;
+}
+
+bool GameObject::operator() (RotatingObject* gObj, bool needToInteract) {
+    return false;
+}
+
+bool GameObject::operator() (FormChangingObject* gObj, bool needToInteract) {
+    return false;
+}
+
+bool GameObject::operator() (CreatorObject* gObj, bool needToInteract) {
+    return false;
+}
+
+double GameObject::getHealth() const {
+    return health;
+}
+
+void GameObject::changeHealth(double shift) {
+    health = health + shift < 0.0000001 ? 0. : health + shift;
+}
+
+void GameObject::attachToField(Field *field) {
+    attachedField = field;
+}
+
+void GameObject::detachFromField() {
+    attachedField = nullptr;
 }
 
 // MovingObject
-
-MovingObject::MovingObject(Field &field, const Field::Position &gObjPos) : MovingObject() {
-    attachToField(field, gObjPos);
-}
 
 _offsets_set MovingObject::getMovesFromCenter() const {
     return _offsets_set();
 }
 
+int MovingObject::getMovesPossible() const {
+    return movesPossible;
+}
+
+void MovingObject::changeMovesPossible(int shift) {
+    movesPossible = movesPossible + shift >= 0 ? movesPossible + shift : 0;
+}
+
 // Rotating Object
 
 RotatingObject::RotatingObject(): GameObject() {
-    orientationsAvailable = {
-            UP,
-            RIGHT,
-            DOWN,
-            LEFT,
-    };
+    orientationsAvailable[UP] = true;
+    orientationsAvailable[RIGHT] = true;
+    orientationsAvailable[DOWN] = true;
+    orientationsAvailable[LEFT] = true;
     pivot = { 0ll, 0ll };
 }
 
@@ -94,11 +124,6 @@ RotatingObject::RotatingObject(const RotatingObject::Orientation& _orientation):
     if (orientationsAvailable.find(orientation) == orientationsAvailable.end())
         throw wrong_orientation_exception();
     orientation = _orientation;
-}
-
-RotatingObject::RotatingObject(Field &field, const Field::Position &gObjPos, const RotatingObject::Orientation& _orientation):
-        RotatingObject(_orientation) {
-    attachToField(field, gObjPos);
 }
 
 bool RotatingObject::rotateClockwiseOffField(int rotates) {
@@ -135,7 +160,7 @@ bool RotatingObject::rotateClockwiseOffField(int rotates) {
 
 bool RotatingObject::rotateCounterclockwiseOffField(int rotates) {
     if (isFieldAttached())
-        return attachedField->rotateObjectCounterclockwise(this, rotates);
+        return false;
     rotates %= 4;
     if (!rotates)
         return true;
@@ -147,11 +172,11 @@ void RotatingObject::changePivot(const _offset& newPivot) {
     pivot = newPivot;
 }
 
-// FormChangingObject
-
-FormChangingObject::FormChangingObject(Field &field, const Field::Position &gObjPos): FormChangingObject() {
-    attachToField(field, gObjPos);
+RotatingObject::Orientation RotatingObject::getOrientation() const {
+    return orientation;
 }
+
+// FormChangingObject
 
 bool FormChangingObject::changeFormOffField(const _offsets_set& newCellsFromCenter) {
     if (isFieldAttached())
@@ -171,6 +196,7 @@ bool FormChangingObject::nextFormOffField() {
 
 // CreatorObject
 
-CreatorObject::CreatorObject(Field &field, const Field::Position &gObjPos): CreatorObject() {
-    attachToField(field, gObjPos);
+template<class ObjectT, typename... Args>
+ObjectT* CreatorObject::createObject(Args... args) {
+    return new ObjectT(args...);
 }
