@@ -51,7 +51,7 @@ public:
     bool setObjectAtPos(GameObject* gObj, Position pos);
     bool setObjectRandPos(GameObject* gObj);
     bool deleteObject(GameObject* gObj);
-    std::unordered_set<GameObject*> getObjectAtPos(const Position& pos);
+    std::unordered_set<GameObject*> getObjectsAtPos(const Position& pos);
     void deleteObjectsAtPos(Position pos);
     std::unordered_set<Position, Position::pos_hash> getPositionsToMove(MovingObject* gObj);
     bool moveObjectAtPos(MovingObject* gObj, Position pos);

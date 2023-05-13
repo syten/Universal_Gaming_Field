@@ -243,12 +243,12 @@ bool Field::deleteObject(GameObject *gObj) {
     return true;
 }
 
-std::unordered_set<GameObject*> Field::getObjectAtPos(const Field::Position& pos) {
+std::unordered_set<GameObject*> Field::getObjectsAtPos(const Position &pos) {
     return positionObject[pos];
 }
 
 void Field::deleteObjectsAtPos(Field::Position pos) {
-    for (auto object: getObjectAtPos(pos))
+    for (auto object: getObjectsAtPos(pos))
         deleteObject(object);
 }
 
