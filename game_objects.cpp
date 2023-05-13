@@ -52,31 +52,23 @@ void GameObject::changeCellsOfInteraction(const std::set<std::pair<long long int
     changeCellsOfInteraction(_cells);
 }
 
-bool GameObject::canInteractWith(GameObject* gObj) {
-    return gObj != nullptr;
-}
-
-bool GameObject::canIntersectWith(GameObject* gObj) {
-    return gObj != nullptr;
-}
-
-bool GameObject::operator() (GameObject* gObj, bool needToInteract) {
+bool GameObject::operator() (Mode mode, GameObject* gObj, bool needToInteract) {
     return false;
 }
 
-bool GameObject::operator() (MovingObject* gObj, bool needToInteract) {
+bool GameObject::operator() (Mode mode, MovingObject* gObj, bool needToInteract) {
     return false;
 }
 
-bool GameObject::operator() (RotatingObject* gObj, bool needToInteract) {
+bool GameObject::operator() (Mode mode, RotatingObject* gObj, bool needToInteract) {
     return false;
 }
 
-bool GameObject::operator() (FormChangingObject* gObj, bool needToInteract) {
+bool GameObject::operator() (Mode mode, FormChangingObject* gObj, bool needToInteract) {
     return false;
 }
 
-bool GameObject::operator() (CreatorObject* gObj, bool needToInteract) {
+bool GameObject::operator() (Mode mode, CreatorObject* gObj, bool needToInteract) {
     return false;
 }
 
@@ -99,7 +91,7 @@ void GameObject::detachFromField() {
 // MovingObject
 
 _offsets_set MovingObject::getMovesFromCenter() const {
-    return _offsets_set();
+    return cellToMove;
 }
 
 int MovingObject::getMovesPossible() const {

@@ -164,7 +164,7 @@ bool Field::isPosAvalForObj(GameObject* gObj, const Position& pos) {
             !cellsMatrix[pos.vertical + it->first][pos.horizontal + it->second].isAvailable())
             return false;
         for (auto objOnCell: cellsMatrix[pos.vertical + it->first][pos.horizontal + it->second].getObjects()) {
-            if (!gObj->canIntersectWith(objOnCell))
+            if (InteractionsCaller::getRightInteraction(INTERACTION, gObj, objOnCell, false))
                 return false;
         }
     }
@@ -178,7 +178,7 @@ bool Field::setObjectAtPos(GameObject* gObj, Field::Position pos) {
     if (!isPosAvalForObj(gObj, pos) || gObj->getAttachedField() != nullptr)
         return false;
     for (auto it = gObj->getCurrentForm().begin(); it != gObj->getCurrentForm().end(); ++it)
-        cellsMatrix[pos.horizontal + it->first][pos.vertical + it->second].addObject(gObj);
+        cellsMatrix[pos.vertical + it->first][pos.horizontal + it->second].addObject(gObj);
     gObj->attachToField(this);
     objectsOnField.insert(gObj);
     objectPosition[gObj] = pos;
@@ -219,8 +219,10 @@ bool Field::moveObjectAtPos(MovingObject *gObj, Field::Position pos) {
         Position newPos(curPos.vertical + moveFromCenter.first, curPos.horizontal + moveFromCenter.second);
         if (newPos == pos) {
             deleteObject(gObj);
-            if (setObjectAtPos(gObj, pos))
+            if (setObjectAtPos(gObj, pos)) {
                 return true;
+                gObj->changeMovesPossible(-1);
+            }
             setObjectAtPos(gObj, curPos);
             return false;
         }
@@ -237,8 +239,8 @@ bool Field::deleteObject(GameObject *gObj) {
         cellsMatrix[objectFormPosition.vertical][objectFormPosition.horizontal].deleteObject(gObj);
     }
     gObj->detachFromField();
-    objectPosition.erase(gObj);
     positionObject.erase(getPosOfObject(gObj));
+    objectPosition.erase(gObj);
     objectsOnField.erase(gObj);
     return true;
 }
@@ -333,7 +335,7 @@ std::unordered_set<GameObject*> Field::getObjectsByTag(const std::string &tag) c
     return res;
 }
 
-std::unordered_set<GameObject*> Field::getObjectToInteract(GameObject* gObj) {
+std::unordered_set<GameObject*> Field::getObjectsToInteract(GameObject* gObj) {
     if (objectsOnField.find(gObj) == objectsOnField.end())
         return {};
     std::unordered_set<GameObject*> res;
@@ -343,11 +345,11 @@ std::unordered_set<GameObject*> Field::getObjectToInteract(GameObject* gObj) {
         if (interactionPos.vertical >= cellsMatrix.size() || interactionPos.horizontal >= cellsMatrix[interactionPos.vertical].size())
             continue;
         for (auto objToInteract: cellsMatrix[interactionPos.vertical][interactionPos.horizontal].objects) {
-            if (gObj->canInteractWith(objToInteract)) {
+            if (InteractionsCaller::getRightInteraction(INTERACTION, gObj, objToInteract, false)) {
                 unsigned long long ignorableCounter = 0;
                 for (auto objToIgnore: cellsMatrix[interactionPos.vertical][interactionPos.horizontal].objects) {
                     if (objToInteract != objToIgnore) {
-                        if (gObj->canIntersectWith(objToIgnore))
+                        if (InteractionsCaller::getRightInteraction(INTERSECTION, gObj, objToInteract, false))
                             ignorableCounter++;
                     }
                 }

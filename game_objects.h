@@ -34,17 +34,20 @@ class RotatingObject;
 class FormChangingObject;
 class CreatorObject;
 
+enum Mode {
+    INTERACTION,
+    INTERSECTION
+};
+
 class GameObject {
-    friend class FormChangingObject;
-    friend class RotatingObject;
     friend class Field;
 
 public:
     GameObject() = default;
     GameObject(const GameObject& otherGObj) = default;
-    GameObject(GameObject&& otherGObj) = default;
+    GameObject(GameObject&& otherGObj) = delete;
     GameObject& operator=(const GameObject& otherGObj) = default;
-    GameObject& operator=(GameObject&& otherGObj) = default;
+    GameObject& operator=(GameObject&& otherGObj) = delete;
     virtual ~GameObject() = default;
 
     double getHealth() const;
@@ -62,19 +65,16 @@ public:
     const _offsets_set& getCurrentForm();
 
     //Interaction
-    virtual _offsets_set getPositionsOfInteraction() const;
+    _offsets_set getPositionsOfInteraction() const;
     void changeCellsOfInteraction(const _offsets_set& cells);
     void changeCellsOfInteraction(const std::vector<std::pair<long long, long long>>& cells);
     void changeCellsOfInteraction(const std::set<std::pair<long long, long long>>& cells);
 
-    bool canIntersectWith(GameObject* gObj);
-    bool canInteractWith(GameObject* gObj);
-
-    virtual bool operator() (GameObject* gObj, bool needToInteract);
-    virtual bool operator() (MovingObject* gObj, bool needToInteract);
-    virtual bool operator() (RotatingObject* gObj, bool needToInteract);
-    virtual bool operator() (FormChangingObject* gObj, bool needToInteract);
-    virtual bool operator() (CreatorObject* gObj, bool needToInteract);
+    virtual bool operator() (Mode mode, GameObject* gObj, bool needToInteract);
+    virtual bool operator() (Mode mode, MovingObject* gObj, bool needToInteract);
+    virtual bool operator() (Mode mode, RotatingObject* gObj, bool needToInteract);
+    virtual bool operator() (Mode mode, FormChangingObject* gObj, bool needToInteract);
+    virtual bool operator() (Mode mode, CreatorObject* gObj, bool needToInteract);
 
 protected:
 
@@ -87,9 +87,9 @@ protected:
 
     _offsets_set cellsOfInteraction;
 
-private:
     _offsets_set currentForm;
 
+private:
     void attachToField(Field* field);
     void detachFromField();
 };
@@ -99,16 +99,17 @@ class MovingObject: virtual public GameObject {
 public:
     MovingObject() = default;
     MovingObject(const MovingObject& otherGObj) = default;
-    MovingObject(MovingObject&& otherGObj) = default;
+    MovingObject(MovingObject&& otherGObj) = delete;
     MovingObject& operator=(const MovingObject& otherGObj) = default;
-    MovingObject& operator=(MovingObject&& otherGObj) = default;
+    MovingObject& operator=(MovingObject&& otherGObj) = delete;
     virtual ~MovingObject() = default;
 
-    virtual _offsets_set getMovesFromCenter() const;
+    _offsets_set getMovesFromCenter() const;
     int getMovesPossible() const;
     void changeMovesPossible(int shift);
 
 protected:
+    _offsets_set cellToMove{};
     int movesPossible{};
 };
 
@@ -124,9 +125,9 @@ public:
     };
 
     RotatingObject(const RotatingObject& otherGObj) = default;
-    RotatingObject(RotatingObject&& otherGObj) = default;
+    RotatingObject(RotatingObject&& otherGObj) = delete;
     RotatingObject& operator=(const RotatingObject& otherGObj) = default;
-    RotatingObject& operator=(RotatingObject&& otherGObj) = default;
+    RotatingObject& operator=(RotatingObject&& otherGObj) = delete;
     virtual ~RotatingObject() = default;
     explicit RotatingObject(const Orientation& _orientation);
 
@@ -151,9 +152,9 @@ class FormChangingObject: virtual public GameObject {
 public:
     FormChangingObject();
     FormChangingObject(const FormChangingObject& otherGObj) = default;
-    FormChangingObject(FormChangingObject&& otherGObj) = default;
+    FormChangingObject(FormChangingObject&& otherGObj) = delete;
     FormChangingObject& operator=(const FormChangingObject& otherGObj) = default;
-    FormChangingObject& operator=(FormChangingObject&& otherGObj) = default;
+    FormChangingObject& operator=(FormChangingObject&& otherGObj) = delete;
     virtual ~FormChangingObject() = default;
 
     bool changeFormOffField(const _offsets_set& newCellFromCenter);
@@ -168,9 +169,9 @@ class CreatorObject: virtual public GameObject {
 public:
     CreatorObject() = default;
     CreatorObject(const CreatorObject& otherGObj) = default;
-    CreatorObject(CreatorObject&& otherGObj) = default;
+    CreatorObject(CreatorObject&& otherGObj) = delete;
     CreatorObject& operator=(const CreatorObject& otherGObj) = default;
-    CreatorObject& operator=(CreatorObject&& otherGObj) = default;
+    CreatorObject& operator=(CreatorObject&& otherGObj) = delete;
     virtual ~CreatorObject() = default;
 
     template<class ObjectT, typename... Args>

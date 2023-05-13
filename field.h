@@ -64,7 +64,7 @@ public:
 
     std::unordered_set<GameObject*> getObjectsByTag(const std::string& tag) const;
 
-    std::unordered_set<GameObject*> getObjectToInteract(GameObject* gObj);
+    std::unordered_set<GameObject*> getObjectsToInteract(GameObject* gObj);
 
 private:
     struct Cell {
