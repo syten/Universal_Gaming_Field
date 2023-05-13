@@ -130,9 +130,10 @@ public:
     virtual ~RotatingObject() = default;
     explicit RotatingObject(const Orientation& _orientation);
 
-    bool rotateClockwiseOffField(int rotates);
-    bool rotateCounterclockwiseOffField(int rotates);
+    bool rotateClockwiseOffField(unsigned int rotates);
+    bool rotateCounterclockwiseOffField(unsigned int rotates);
 
+    _offset getPivot();
     void changePivot(const _offset& newPivot);
 
     Orientation getOrientation() const;

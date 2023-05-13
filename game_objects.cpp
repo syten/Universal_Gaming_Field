@@ -126,7 +126,7 @@ RotatingObject::RotatingObject(const RotatingObject::Orientation& _orientation):
     orientation = _orientation;
 }
 
-bool RotatingObject::rotateClockwiseOffField(int rotates) {
+bool RotatingObject::rotateClockwiseOffField(unsigned int rotates) {
     if (isFieldAttached())
         return false;
     rotates %= 4;
@@ -142,7 +142,7 @@ bool RotatingObject::rotateClockwiseOffField(int rotates) {
                 newCellsFromCenter.insert(std::make_pair(offset.second, -offset.first));
             break;
         case 2:
-            changePivot(std::make_pair(-pivot.first, -pivot.second));
+            changePivot(std::make_pair(-pivot.first, -pivot.second)); // сначала y потом x
             for (_offset offset: currentForm)
                 newCellsFromCenter.insert(std::make_pair(-offset.first, -offset.second));
             break;
@@ -158,14 +158,13 @@ bool RotatingObject::rotateClockwiseOffField(int rotates) {
     return true;
 }
 
-bool RotatingObject::rotateCounterclockwiseOffField(int rotates) {
-    if (isFieldAttached())
-        return false;
+bool RotatingObject::rotateCounterclockwiseOffField(unsigned int rotates) {
     rotates %= 4;
-    if (!rotates)
-        return true;
-
     return rotateClockwiseOffField(4 - rotates);
+}
+
+_offset RotatingObject::getPivot() {
+    return pivot;
 }
 
 void RotatingObject::changePivot(const _offset& newPivot) {

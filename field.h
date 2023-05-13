@@ -19,6 +19,12 @@ class Field {
 
 public:
     struct Position {
+        struct pos_hash {
+            std::size_t operator() (const Position& pos) const {
+                return pos.vertical * 31 + pos.horizontal;
+            }
+        };
+
         Position() = default;
         ~Position() = default;
         friend Position operator+ (const Position& pos1, const Position& pos2);
@@ -32,29 +38,33 @@ public:
     Field(std::size_t width, std::size_t height);
     explicit Field(const std::vector<std::vector<bool>>& matrix);
 
-    bool changeSize(long long left, long long right, long long below, long long above);
+    bool limitLeftBorder(std::size_t minusColumns);
+    bool limitRightBorder(std::size_t minusColumns);
+    bool limitBelowBorder(std::size_t minusRows);
+    bool limitAboveBorder(std::size_t minusRows);
+    bool expandLeftBorder(std::size_t plusColumns);
+    bool expandRightBorder(std::size_t plusColumns);
+    bool expandBelowBorder(std::size_t plusRows);
+    bool expandAboveBorder(std::size_t plusRows);
 
-    bool canSetObjectAtPos(GameObject* gObj, const Position pos);
+    bool isPosAvalForObj(GameObject* gObj, const Position& pos);
     bool setObjectAtPos(GameObject* gObj, Position pos);
     bool setObjectRandPos(GameObject* gObj);
     bool deleteObject(GameObject* gObj);
-    bool deleteObjectsAtPos(Position pos);
-    _offsets_set getPossibleMoves(const MovingObject* gObj);
+    std::unordered_set<GameObject*> getObjectAtPos(const Position& pos);
+    void deleteObjectsAtPos(Position pos);
+    std::unordered_set<Position, Position::pos_hash> getPositionsToMove(MovingObject* gObj);
     bool moveObjectAtPos(MovingObject* gObj, Position pos);
     bool rotateObjectClockwise(RotatingObject* gObj, int rotates);
     bool rotateObjectCounterclockwise(RotatingObject* gObj, int rotates);
     bool changeObjectForm(FormChangingObject* gObj, const _offsets_set& newCellsFromCenter);
     bool nextObjectForm(FormChangingObject* gObj);
 
-    //const std::unordered_set<Cell&> getAvailableCells() const;
-
-    std::unordered_set<const GameObject*> getObjectsAtPos(std::size_t x, std::size_t y) const;
     Position getPosOfObject(GameObject* gObj);
 
     std::unordered_set<GameObject*> getObjectsByTag(const std::string& tag) const;
 
-    std::unordered_set<const GameObject*> getObjectToInteract(const GameObject* gObj) const;
-    //std::unordered_set<Cell> getCellsToMove(const MovingObject& gObj) const;
+    std::unordered_set<GameObject*> getObjectToInteract(GameObject* gObj);
 
 private:
     struct Cell {
@@ -68,7 +78,6 @@ private:
         Position getPosition();
         std::unordered_set<std::string> getTags();
         std::unordered_set<GameObject*> getObjects();
-        bool canSetObject(GameObject* gObj) const;
         void addObject(GameObject* gObj);
         void deleteObject(GameObject* gObj);
         void addTag(std::string& tag);
@@ -85,7 +94,8 @@ private:
 
     std::vector<std::vector<Cell>> cellsMatrix;
     std::unordered_set<GameObject*> objectsOnField;
-    std::unordered_map<GameObject*, Position> objectsPosition;
+    std::unordered_map<GameObject*, Position> objectPosition;
+    std::unordered_map<Position, std::unordered_set<GameObject*>, Position::pos_hash> positionObject;
 };
 
 #endif //UNIVERSAL_GAMING_FIELD_FIELD_H

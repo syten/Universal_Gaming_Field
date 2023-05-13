@@ -70,31 +70,93 @@ Field::Field(const std::vector<std::vector<bool>>& matrix) {
     }
 }
 
-//bool Field::changeSize(long long int left, long long int right, long long int below, long long int above) {
-//    // Check Possibility to change size
-//    std::size_t cur_height = cellsMatrix.size();
-//    if (above < 0 && -(long long)cur_height > above
-//        || below < 0 && -(long long)cur_height > below
-//        || below < 0 && above < 0 && (-(long long)cur_height > below + above || below + above >= 0)) {
-//        return false;
-//    }
-//    std::size_t max_width = 0;
-//    for (int i = 0; i < cellsMatrix.size(); ++i)
-//        max_width = std::max(max_width, cellsMatrix[i].size());
-//    if (right < 0 && -(long long)max_width > right
-//        || left < 0 && -(long long)max_width > left
-//        || left < 0 && right < 0 && (-(long long)max_width > left + right || left + right >= 0)) {
-//        return false;
-//    }
-//    // Algorithm
-//    if (left < 0) {
-//
-//    }
-//    else
-//    if ()
-//}
+bool Field::limitLeftBorder(std::size_t minusColumns) {
+    for (std::size_t i = 0; i < cellsMatrix.size(); ++i) {
+        if (cellsMatrix[i].size() <= minusColumns)
+            return false;
+    }
+    for (std::size_t i = 0; i < cellsMatrix.size(); ++i) {
+        for (std::size_t j = 0; j < minusColumns; ++j)
+            for (auto gObj: cellsMatrix[i][j].objects)
+                deleteObject(gObj);
+        cellsMatrix[i].erase(cellsMatrix[i].begin(), cellsMatrix[i].begin() + minusColumns - 1);
+    }
+    return true;
+}
 
-bool Field::canSetObjectAtPos(GameObject* gObj, const Position pos) {
+bool Field::limitRightBorder(std::size_t minusColumns) {
+    for (std::size_t i = 0; i < cellsMatrix.size(); ++i) {
+        if (cellsMatrix[i].size() <= minusColumns)
+            return false;
+    }
+    for (std::size_t i = 0; i < cellsMatrix.size(); ++i) {
+        for (std::size_t j = cellsMatrix[i].size() - minusColumns; j < cellsMatrix[i].size(); ++j)
+            for (auto gObj: cellsMatrix[i][j].objects)
+                deleteObject(gObj);
+        cellsMatrix[i].erase(cellsMatrix[i].begin() + (cellsMatrix[i].size() - minusColumns), (--cellsMatrix[i].end()));
+    }
+    return true;
+}
+
+bool Field::limitBelowBorder(std::size_t minusRows) {
+    if (cellsMatrix.size() <= minusRows)
+        return false;
+    for (std::size_t i = cellsMatrix.size() - minusRows; i < cellsMatrix.size(); ++i) {
+        for (std::size_t j = 0; j < cellsMatrix[i].size(); ++j)
+            for (auto gObj: cellsMatrix[i][j].objects)
+                deleteObject(gObj);
+    }
+    cellsMatrix.erase(cellsMatrix.begin() + (cellsMatrix.size() - minusRows), (--cellsMatrix.end()));
+    return true;
+}
+
+bool Field::limitAboveBorder(std::size_t minusRows) {
+    if (cellsMatrix.size() <= minusRows)
+        return false;
+    for (std::size_t i = 0; i < minusRows; ++i) {
+        for (std::size_t j = 0; j < cellsMatrix[i].size(); ++j)
+            for (auto gObj: cellsMatrix[i][j].objects)
+                deleteObject(gObj);
+    }
+    cellsMatrix.erase(cellsMatrix.begin(), cellsMatrix.begin() + (minusRows - 1));
+    return true;
+}
+
+bool Field::expandLeftBorder(std::size_t plusColumns) {
+    for (std::size_t i = 0; i < cellsMatrix.size(); ++i)
+        if (cellsMatrix[i].size() + plusColumns <= cellsMatrix[i].size())
+            return false;
+    for (std::size_t i = 0; i < cellsMatrix.size(); ++i)
+        cellsMatrix[i].insert(cellsMatrix[i].begin(), plusColumns, Cell());
+    return true;
+}
+
+bool Field::expandRightBorder(std::size_t plusColumns) {
+    for (std::size_t i = 0; i < cellsMatrix.size(); ++i)
+        if (cellsMatrix[i].size() + plusColumns <= cellsMatrix[i].size())
+            return false;
+    for (std::size_t i = 0; i < cellsMatrix.size(); ++i)
+        cellsMatrix[i].insert(cellsMatrix[i].end(), plusColumns, Cell());
+    return true;
+}
+
+bool Field::expandBelowBorder(std::size_t plusRows) {
+    if (cellsMatrix.size() + plusRows <= cellsMatrix.size())
+        return false;
+    std::size_t lastRowSize = cellsMatrix[cellsMatrix.size() - 1].size();
+    cellsMatrix.insert(cellsMatrix.end(), plusRows, std::vector<Cell>(lastRowSize));
+    return true;
+}
+
+bool Field::expandAboveBorder(std::size_t plusRows) {
+    if (cellsMatrix.size() + plusRows <= cellsMatrix.size())
+        return false;
+    std::size_t firstRowSize = cellsMatrix[0].size();
+    cellsMatrix.insert(cellsMatrix.begin(), plusRows, std::vector<Cell>(firstRowSize));
+    return true;
+}
+
+bool Field::isPosAvalForObj(GameObject* gObj, const Position& pos) {
     if (pos.vertical > cellsMatrix.size())
     for (auto it = gObj->getCurrentForm().begin(); it != gObj->getCurrentForm().end(); ++it) {
         if (pos.vertical + it->first > cellsMatrix.size() - 1 ||
@@ -113,16 +175,20 @@ bool Field::canSetObjectAtPos(GameObject* gObj, const Position pos) {
 }
 
 bool Field::setObjectAtPos(GameObject* gObj, Field::Position pos) {
-    if (!canSetObjectAtPos(gObj, pos))
+    if (!isPosAvalForObj(gObj, pos) || gObj->getAttachedField() != nullptr)
         return false;
     for (auto it = gObj->getCurrentForm().begin(); it != gObj->getCurrentForm().end(); ++it)
         cellsMatrix[pos.horizontal + it->first][pos.vertical + it->second].addObject(gObj);
+    gObj->attachToField(this);
     objectsOnField.insert(gObj);
-    objectsPosition[gObj] = pos;
+    objectPosition[gObj] = pos;
+    positionObject[pos].insert(gObj);
     return true;
 }
 
 bool Field::setObjectRandPos(GameObject *gObj) {
+    if (gObj->getAttachedField() != nullptr)
+        return false;
     std::unordered_map<std::size_t, Cell*> numberActiveCell;
     std::size_t cur_ind = 0;
     for (std::size_t i = 0; i < cellsMatrix.size(); ++i) {
@@ -142,18 +208,22 @@ bool Field::setObjectRandPos(GameObject *gObj) {
 }
 
 Field::Position Field::getPosOfObject(GameObject* gObj) {
-    return objectsPosition[gObj];
+    return objectPosition[gObj];
 }
 
-
 bool Field::moveObjectAtPos(MovingObject *gObj, Field::Position pos) {
-    if (!canSetObjectAtPos(gObj, pos))
+    if (!isPosAvalForObj(gObj, pos) || gObj->getAttachedField() != this)
         return false;
     Position curPos = getPosOfObject(gObj);
     for (auto moveFromCenter: gObj->getMovesFromCenter()) {
         Position newPos(curPos.vertical + moveFromCenter.first, curPos.horizontal + moveFromCenter.second);
-        if (newPos == pos)
-            return setObjectAtPos(gObj, pos);
+        if (newPos == pos) {
+            deleteObject(gObj);
+            if (setObjectAtPos(gObj, pos))
+                return true;
+            setObjectAtPos(gObj, curPos);
+            return false;
+        }
     }
     return false;
 }
@@ -166,6 +236,125 @@ bool Field::deleteObject(GameObject *gObj) {
         Position objectFormPosition(currentPos.vertical + offsetFromCenter.first, currentPos.horizontal + offsetFromCenter.second);
         cellsMatrix[objectFormPosition.vertical][objectFormPosition.horizontal].deleteObject(gObj);
     }
+    gObj->detachFromField();
+    objectPosition.erase(gObj);
+    positionObject.erase(getPosOfObject(gObj));
+    objectsOnField.erase(gObj);
     return true;
 }
 
+std::unordered_set<GameObject*> Field::getObjectAtPos(const Field::Position& pos) {
+    return positionObject[pos];
+}
+
+void Field::deleteObjectsAtPos(Field::Position pos) {
+    for (auto object: getObjectAtPos(pos))
+        deleteObject(object);
+}
+
+std::unordered_set<Field::Position, Field::Position::pos_hash> Field::getPositionsToMove(MovingObject* gObj) {
+    std::unordered_set<Field::Position, Field::Position::pos_hash> result;
+    for (auto moveFromCenter: gObj->getMovesFromCenter()) {
+        Position newPos = Position(getPosOfObject(gObj).vertical + moveFromCenter.first,
+                                   getPosOfObject(gObj).horizontal + moveFromCenter.second);
+        if (isPosAvalForObj(gObj, newPos))
+            result.insert(newPos);
+    }
+    return result;
+}
+
+bool Field::rotateObjectClockwise(RotatingObject* gObj, int rotates) {
+    if (objectsOnField.find(gObj) == objectsOnField.end())
+        return false;
+    auto rotatedObj = new RotatingObject(*gObj);
+    rotatedObj->detachFromField();
+    if (!rotatedObj->rotateClockwiseOffField(rotates))
+        return false;
+    Position prevObjPos = getPosOfObject(gObj);
+    Position newObjPos(gObj->getPivot().first - rotatedObj->getPivot().first,
+                               gObj->getPivot().second - rotatedObj->getPivot().second);
+    deleteObject(gObj);
+    if (!setObjectAtPos(rotatedObj, newObjPos)) {
+        setObjectAtPos(gObj, prevObjPos);
+        delete rotatedObj;
+        return false;
+    }
+    delete gObj;
+    return true;
+}
+
+bool Field::rotateObjectCounterclockwise(RotatingObject *gObj, int rotates) {
+    rotates %= 4;
+    return rotateObjectClockwise(gObj, 4 - rotates);
+}
+
+bool Field::changeObjectForm(FormChangingObject* gObj, const _offsets_set& newCellsFromCenter) {
+    if (objectsOnField.find(gObj) == objectsOnField.end())
+        return false;
+    auto newFormObject = new FormChangingObject(*gObj);
+    newFormObject->detachFromField();
+    if (!newFormObject->changeFormOffField(newCellsFromCenter))
+        return false;
+    Position objPos = getPosOfObject(gObj);
+    deleteObject(gObj);
+    if (!setObjectAtPos(newFormObject, objPos)) {
+        setObjectAtPos(gObj, objPos);
+        delete newFormObject;
+        return false;
+    }
+    delete gObj;
+    return true;
+}
+
+bool Field::nextObjectForm(FormChangingObject *gObj) {
+    if (objectsOnField.find(gObj) == objectsOnField.end())
+        return false;
+    auto newFormObject = new FormChangingObject(*gObj);
+    newFormObject->detachFromField();
+    if (!newFormObject->nextFormOffField()) {
+        delete newFormObject;
+        return false;
+    }
+    _offsets_set newForm = newFormObject->getCurrentForm();
+    delete newFormObject;
+    return changeObjectForm(gObj, newForm);
+}
+
+std::unordered_set<GameObject*> Field::getObjectsByTag(const std::string &tag) const {
+    std::unordered_set<GameObject*> res;
+    for (std::size_t i = 0; i < cellsMatrix.size(); ++i) {
+        for (std::size_t j = 0; j < cellsMatrix[i].size(); ++j) {
+            for (auto gObj: cellsMatrix[i][j].objects) {
+                if (gObj->hasTag(tag))
+                    res.insert(gObj);
+            }
+        }
+    }
+    return res;
+}
+
+std::unordered_set<GameObject*> Field::getObjectToInteract(GameObject* gObj) {
+    if (objectsOnField.find(gObj) == objectsOnField.end())
+        return {};
+    std::unordered_set<GameObject*> res;
+    Position objPos = getPosOfObject(gObj);
+    for (auto offsetOfInteraction: gObj->getPositionsOfInteraction()) {
+        Position interactionPos(objPos.vertical + offsetOfInteraction.first, objPos.horizontal + offsetOfInteraction.second);
+        if (interactionPos.vertical >= cellsMatrix.size() || interactionPos.horizontal >= cellsMatrix[interactionPos.vertical].size())
+            continue;
+        for (auto objToInteract: cellsMatrix[interactionPos.vertical][interactionPos.horizontal].objects) {
+            if (gObj->canInteractWith(objToInteract)) {
+                unsigned long long ignorableCounter = 0;
+                for (auto objToIgnore: cellsMatrix[interactionPos.vertical][interactionPos.horizontal].objects) {
+                    if (objToInteract != objToIgnore) {
+                        if (gObj->canIntersectWith(objToIgnore))
+                            ignorableCounter++;
+                    }
+                }
+                if (ignorableCounter == cellsMatrix[interactionPos.vertical][interactionPos.horizontal].objects.size() - 1)
+                    res.insert(objToInteract);
+            }
+        }
+    }
+    return res;
+}
