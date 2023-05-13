@@ -142,7 +142,7 @@ bool RotatingObject::rotateClockwiseOffField(unsigned int rotates) {
                 newCellsFromCenter.insert(std::make_pair(offset.second, -offset.first));
             break;
         case 2:
-            changePivot(std::make_pair(-pivot.first, -pivot.second)); // сначала y потом x
+            changePivot(std::make_pair(-pivot.first, -pivot.second));
             for (_offset offset: currentForm)
                 newCellsFromCenter.insert(std::make_pair(-offset.first, -offset.second));
             break;
