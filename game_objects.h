@@ -1,7 +1,3 @@
-//
-// Created by dronl on 18.04.2023.
-//
-
 #ifndef UNIVERSAL_GAMING_FIELD_GAME_OBJECTS_H
 #define UNIVERSAL_GAMING_FIELD_GAME_OBJECTS_H
 
@@ -12,12 +8,6 @@
 #include <exception>
 #include <cmath>
 #include <vector>
-
-class wrong_orientation_exception: public std::exception {
-    const char* what() const throw() {
-        return "Wrong object orientation exception";
-    }
-};
 
 struct pair_hash {
     inline std::size_t operator() (const std::pair<long long, long long>& v) const {
@@ -117,6 +107,12 @@ protected:
 class RotatingObject: virtual public GameObject {
 
 public:
+    class wrong_orientation_exception: public std::exception {
+        const char* what() const throw() {
+            return "Wrong object orientation exception";
+        }
+    };
+
     enum Orientation {
         UP,
         RIGHT,
@@ -150,7 +146,7 @@ protected:
 
 class FormChangingObject: virtual public GameObject {
 public:
-    FormChangingObject();
+    FormChangingObject() = default;
     FormChangingObject(const FormChangingObject& otherGObj) = default;
     FormChangingObject(FormChangingObject&& otherGObj) = delete;
     FormChangingObject& operator=(const FormChangingObject& otherGObj) = default;

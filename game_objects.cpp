@@ -105,15 +105,15 @@ void MovingObject::changeMovesPossible(int shift) {
 // Rotating Object
 
 RotatingObject::RotatingObject(): GameObject() {
-    orientationsAvailable[UP] = true;
-    orientationsAvailable[RIGHT] = true;
-    orientationsAvailable[DOWN] = true;
-    orientationsAvailable[LEFT] = true;
+    orientationsAvailable[UP] = false;
+    orientationsAvailable[RIGHT] = false;
+    orientationsAvailable[DOWN] = false;
+    orientationsAvailable[LEFT] = false;
     pivot = { 0ll, 0ll };
 }
 
 RotatingObject::RotatingObject(const RotatingObject::Orientation& _orientation): RotatingObject() {
-    if (orientationsAvailable.find(orientation) == orientationsAvailable.end())
+    if (!orientationsAvailable[_orientation])
         throw wrong_orientation_exception();
     orientation = _orientation;
 }
