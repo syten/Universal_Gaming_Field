@@ -14,7 +14,7 @@ class MyObject: public MovingObject {
 public:
     MyObject() {
         health = 1;
-        movesPossible = 1;
+        movesPossible = 2;
         interactionsPossible = 1;
         cellsOfInteraction = { std::make_pair(-1, 0) };
         cellToMove = { std::make_pair(-1, 0),
@@ -40,7 +40,6 @@ inline bool MyObject::operator()(Mode mode, MyObject2 *gObj, bool needToInteract
 
     if (mode == INTERACTION) {
         gObj->changeHealth(-1.);
-        getAttachedField();
         interactionsPossible--;
         return true;
     }

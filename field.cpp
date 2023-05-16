@@ -157,7 +157,8 @@ bool Field::expandAboveBorder(std::size_t plusRows) {
 }
 
 bool Field::isPosAvalForObj(GameObject* gObj, const Position& pos) {
-    if (pos.vertical > cellsMatrix.size())
+    if (pos.vertical > cellsMatrix.size() - 1)
+        return false;
     for (auto it = gObj->getCurrentForm().begin(); it != gObj->getCurrentForm().end(); ++it) {
         if (pos.vertical + it->first > cellsMatrix.size() - 1 ||
             pos.horizontal + it->second > cellsMatrix[pos.vertical + it->first].size() ||
@@ -168,9 +169,7 @@ bool Field::isPosAvalForObj(GameObject* gObj, const Position& pos) {
                 return false;
         }
     }
-    for (auto it = gObj->getCurrentForm().begin(); it != gObj->getCurrentForm().end(); ++it)
-        cellsMatrix[pos.horizontal + it->first][pos.vertical + it->second].addObject(gObj);
-    objectsOnField.insert(gObj);
+    //🎰
     return true;
 }
 
@@ -219,9 +218,9 @@ bool Field::moveObjectAtPos(MovingObject *gObj, Field::Position pos) {
         Position newPos(curPos.vertical + moveFromCenter.first, curPos.horizontal + moveFromCenter.second);
         if (newPos == pos) {
             deleteObject(gObj);
-            if (setObjectAtPos(gObj, pos)) {
-                return true;
+            if (gObj->getMovesPossible() && setObjectAtPos(gObj, pos)) {
                 gObj->changeMovesPossible(-1);
+                return true;
             }
             setObjectAtPos(gObj, curPos);
             return false;

@@ -21,12 +21,12 @@ public:
     static bool getRightInteraction(Mode mode, GameObject* _interactor, GameObject* gObj, bool needToInteract = true) {
         // add your classes here...
 
-//        auto myObj = dynamic_cast<MyObject*>(_interactor);
-//        if (myObj != nullptr) {
-//            if ((*myObj)(mode, dynamic_cast<MyObject2*>(gObj), needToInteract))
-//                return true;
-//            return false;
-//        }
+        auto myObj = dynamic_cast<MyObject*>(_interactor);
+        if (myObj != nullptr) {
+            if ((*myObj)(mode, dynamic_cast<MyObject2*>(gObj), needToInteract))
+                return true;
+            return false;
+        }
     return true;
     }
 };
