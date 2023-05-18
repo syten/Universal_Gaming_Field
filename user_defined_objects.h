@@ -37,12 +37,12 @@ public:
 };
 
 class MyRotatingObject: public RotatingObject {
-public:
     MyRotatingObject() {
         orientationsAvailable[UP] = true;
         orientationsAvailable[LEFT] = true;
     }
-    MyRotatingObject(const Orientation& _orientation): MyRotatingObject() {
+public:
+    explicit MyRotatingObject(const Orientation& _orientation): MyRotatingObject() {
         if (!orientationsAvailable[_orientation])
             throw wrong_orientation_exception();
         health = 1;
@@ -71,6 +71,7 @@ public:
             objToPlace->changeMovesPossible(5);
             return objToPlace;
         }
+        return nullptr;
     }
 };
 
@@ -91,6 +92,7 @@ inline bool MyMovingObject::operator()(Mode mode, GameObject* gObj, bool needToI
     if (mode == INTERSECTION) {
         return true;
     }
+    return false;
 }
 
 #endif //UNIVERSAL_GAMING_FIELD_USER_DEFINED_OBJECTS_H

@@ -19,9 +19,8 @@ bool interactDelete(Field& myField, MovingObject* movObj) {
         myField.deleteObject(gObj);
         delete gObj;
     }
+    return true;
 }
-
-//void interactDelete()
 
 int main() {
     Field myField(5, 4);
@@ -35,7 +34,9 @@ int main() {
     myField.setObjectAtPos(myStaticObject, Field::Position(1, 2));
     myField.setObjectAtPos(myRotatingObject, Field::Position(2, 3));
 
-    MyMovingObject* createdObject = dynamic_cast<MyMovingObject*>(myField.createObjectAtPos(myCreatorObject, typeid(MyMovingObject), Field::Position(1, 0)));
+    MyMovingObject* createdObject = dynamic_cast<MyMovingObject*>(myField.createObjectAtPos(myCreatorObject,
+                                                                                            typeid(MyMovingObject),
+                                                                                            Field::Position(1, 0)));
     if (createdObject == nullptr) {
         std::cout << "Can't create object.\n" << std::flush;
         return 0;
@@ -56,7 +57,7 @@ int main() {
     myField.rotateObjectCounterclockwise(myRotatingObject, 1);
     interactDelete(myField, createdObject);
 
-    std::cout << 1;
+    std::cout << "Successful!\n";
 
     return 0;
 }
