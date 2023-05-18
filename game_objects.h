@@ -55,7 +55,7 @@ public:
     const _offsets_set& getCurrentForm();
 
     //Interaction
-    _offsets_set getPositionsOfInteraction() const;
+    virtual _offsets_set getPositionsOfInteraction() const;
     void changeCellsOfInteraction(const _offsets_set& cells);
     void changeCellsOfInteraction(const std::vector<std::pair<long long, long long>>& cells);
     void changeCellsOfInteraction(const std::set<std::pair<long long, long long>>& cells);
@@ -170,8 +170,7 @@ public:
     CreatorObject& operator=(CreatorObject&& otherGObj) = delete;
     virtual ~CreatorObject() = default;
 
-    template<class ObjectT, typename... Args>
-    ObjectT* createObject(Args... args);
+    virtual GameObject* createObject(const std::type_info& info);
 };
 
 #endif //UNIVERSAL_GAMING_FIELD_GAME_OBJECTS_H

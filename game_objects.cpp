@@ -141,7 +141,7 @@ bool RotatingObject::rotateClockwiseOffField(unsigned int rotates) {
         case 3:
             changePivot(pivot = std::make_pair(-pivot.second, pivot.first));
             for (_offset offset: currentForm)
-                newCellsFromCenter.insert(std::make_pair(-offset.second, -offset.first));
+                newCellsFromCenter.insert(std::make_pair(-offset.second, offset.first));
             break;
         default: break;
     }
@@ -187,7 +187,15 @@ bool FormChangingObject::nextFormOffField() {
 
 // CreatorObject
 
-template<class ObjectT, typename... Args>
-ObjectT* CreatorObject::createObject(Args... args) {
-    return new ObjectT(args...);
+GameObject* CreatorObject::createObject(const std::type_info& info) {
+    if (info == typeid(GameObject))
+        return new GameObject;
+    if (info == typeid(MovingObject))
+        return new MovingObject();
+    if (info == typeid(RotatingObject))
+        return new RotatingObject(RotatingObject::Orientation::UP);
+    if (info == typeid(FormChangingObject))
+        return new FormChangingObject;
+    if (info == typeid(CreatorObject))
+        return new CreatorObject;
 }

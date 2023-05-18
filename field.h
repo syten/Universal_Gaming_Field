@@ -37,6 +37,7 @@ public:
     Field() = delete;
     Field(std::size_t width, std::size_t height);
     explicit Field(const std::vector<std::vector<bool>>& matrix);
+    ~Field();
 
     bool limitLeftBorder(std::size_t minusColumns);
     bool limitRightBorder(std::size_t minusColumns);
@@ -59,6 +60,7 @@ public:
     bool rotateObjectCounterclockwise(RotatingObject* gObj, int rotates);
     bool changeObjectForm(FormChangingObject* gObj, const _offsets_set& newCellsFromCenter);
     bool nextObjectForm(FormChangingObject* gObj);
+    GameObject* createObjectAtPos(CreatorObject* creatorObject, const std::type_info& typeToCreate, const Position& pos);
 
     Position getPosOfObject(GameObject* gObj);
 

@@ -70,6 +70,17 @@ Field::Field(const std::vector<std::vector<bool>>& matrix) {
     }
 }
 
+Field::~Field() {
+    for (std::size_t i = 0; i < cellsMatrix.size(); ++i) {
+        for (std::size_t j = 0; j < cellsMatrix[i].size(); ++j) {
+            std::unordered_set<GameObject*> objectPointers = getObjectsAtPos(Position(i, j));
+            deleteObjectsAtPos(Position(i, j));
+            for (auto it = objectPointers.begin(); it != objectPointers.end(); ++it)
+                delete *it;
+        }
+    }
+}
+
 bool Field::limitLeftBorder(std::size_t minusColumns) {
     for (std::size_t i = 0; i < cellsMatrix.size(); ++i) {
         if (cellsMatrix[i].size() <= minusColumns)
@@ -157,20 +168,18 @@ bool Field::expandAboveBorder(std::size_t plusRows) {
 }
 
 bool Field::isPosAvalForObj(GameObject* gObj, const Position& pos) {
-    if (pos.vertical > cellsMatrix.size())
+    if (pos.vertical > cellsMatrix.size() - 1)
+        return false;
     for (auto it = gObj->getCurrentForm().begin(); it != gObj->getCurrentForm().end(); ++it) {
         if (pos.vertical + it->first > cellsMatrix.size() - 1 ||
             pos.horizontal + it->second > cellsMatrix[pos.vertical + it->first].size() ||
             !cellsMatrix[pos.vertical + it->first][pos.horizontal + it->second].isAvailable())
             return false;
         for (auto objOnCell: cellsMatrix[pos.vertical + it->first][pos.horizontal + it->second].getObjects()) {
-            if (InteractionsCaller::getRightInteraction(INTERACTION, gObj, objOnCell, false))
+            if (!InteractionsCaller::getRightInteraction(INTERSECTION, gObj, objOnCell, false))
                 return false;
         }
     }
-    for (auto it = gObj->getCurrentForm().begin(); it != gObj->getCurrentForm().end(); ++it)
-        cellsMatrix[pos.horizontal + it->first][pos.vertical + it->second].addObject(gObj);
-    objectsOnField.insert(gObj);
     return true;
 }
 
@@ -212,7 +221,7 @@ Field::Position Field::getPosOfObject(GameObject* gObj) {
 }
 
 bool Field::moveObjectAtPos(MovingObject *gObj, Field::Position pos) {
-    if (!isPosAvalForObj(gObj, pos) || gObj->getAttachedField() != this)
+    if (!isPosAvalForObj(gObj, pos) || gObj->getAttachedField() != this || !gObj->getMovesPossible())
         return false;
     Position curPos = getPosOfObject(gObj);
     for (auto moveFromCenter: gObj->getMovesFromCenter()) {
@@ -220,8 +229,8 @@ bool Field::moveObjectAtPos(MovingObject *gObj, Field::Position pos) {
         if (newPos == pos) {
             deleteObject(gObj);
             if (setObjectAtPos(gObj, pos)) {
-                return true;
                 gObj->changeMovesPossible(-1);
+                return true;
             }
             setObjectAtPos(gObj, curPos);
             return false;
@@ -273,8 +282,8 @@ bool Field::rotateObjectClockwise(RotatingObject* gObj, int rotates) {
     if (!rotatedObj->rotateClockwiseOffField(rotates))
         return false;
     Position prevObjPos = getPosOfObject(gObj);
-    Position newObjPos(gObj->getPivot().first - rotatedObj->getPivot().first,
-                               gObj->getPivot().second - rotatedObj->getPivot().second);
+    Position newObjPos(gObj->getPivot().first - rotatedObj->getPivot().first + prevObjPos.vertical,
+                       gObj->getPivot().second - rotatedObj->getPivot().second + prevObjPos.horizontal);
     deleteObject(gObj);
     if (!setObjectAtPos(rotatedObj, newObjPos)) {
         setObjectAtPos(gObj, prevObjPos);
@@ -320,6 +329,16 @@ bool Field::nextObjectForm(FormChangingObject *gObj) {
     _offsets_set newForm = newFormObject->getCurrentForm();
     delete newFormObject;
     return changeObjectForm(gObj, newForm);
+}
+
+GameObject* Field::createObjectAtPos(CreatorObject* creatorObject, const std::type_info& typeToCreate, const Position& pos) {
+    GameObject* result = creatorObject->createObject(typeToCreate);
+    if (result == nullptr || !isPosAvalForObj(result, pos)) {
+        delete result;
+        return nullptr;
+    }
+    setObjectAtPos(result, pos);
+    return result;
 }
 
 std::unordered_set<GameObject*> Field::getObjectsByTag(const std::string &tag) const {

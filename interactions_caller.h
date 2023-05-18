@@ -10,8 +10,7 @@ class RotatingObject;
 class FormChangingObject;
 class CreatorObject;
 class GameObject;
-class MyObject;
-class MyObject2;
+class MyStaticObject;
 
 #include "game_objects.h"
 #include "user_defined_objects.h"
@@ -21,12 +20,12 @@ public:
     static bool getRightInteraction(Mode mode, GameObject* _interactor, GameObject* gObj, bool needToInteract = true) {
         // add your classes here...
 
-//        auto myObj = dynamic_cast<MyObject*>(_interactor);
-//        if (myObj != nullptr) {
-//            if ((*myObj)(mode, dynamic_cast<MyObject2*>(gObj), needToInteract))
-//                return true;
-//            return false;
-//        }
+        auto myObj = dynamic_cast<MyMovingObject*>(_interactor);
+        if (myObj != nullptr) {
+            if ((*myObj)(mode, dynamic_cast<GameObject*>(gObj), needToInteract))
+                return true;
+            return false;
+        }
     return true;
     }
 };
